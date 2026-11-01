@@ -1,0 +1,1018 @@
+```html
+<!DOCTYPE html>
+<html lang="pl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halloween Kostiumy - Głosowanie</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        halloween: {
+                            50: '#fdf8f6',
+                            100: '#fbe8e1',
+                            500: '#ff6600',
+                            600: '#e65c00',
+                            700: '#b34700',
+                            900: '#4d1f00',
+                            950: '#1a0a00',
+                        },
+                        spooky: {
+                            dark: '#0a040d',
+                            card: '#160a22',
+                            border: '#3b1c54',
+                            purple: '#8b5cf6',
+                            neon: '#a855f7',
+                            gold: '#ffd700'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Creepster & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for spooky icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti for Celebration Effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        .font-creepster {
+            font-family: 'Creepster', cursive, system-ui;
+            letter-spacing: 2px;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a040d;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(255, 102, 0, 0.08) 0%, transparent 35%),
+                radial-gradient(circle at 85% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 35%);
+        }
+        .spooky-glow {
+            text-shadow: 0 0 10px rgba(255, 102, 0, 0.6), 0 0 25px rgba(139, 92, 246, 0.4);
+        }
+        .card-glow {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-glow:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px -10px rgba(255, 102, 0, 0.3), 0 0 20px -5px rgba(168, 85, 247, 0.2);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a040d;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ff6600;
+            border-radius: 4px;
+        }
+
+        /* Podium Animations */
+        @keyframes popUp {
+            0% { transform: translateY(60px) scale(0.8); opacity: 0; }
+            80% { transform: translateY(-10px) scale(1.05); opacity: 1; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .animate-pop-up {
+            animation: popUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes countPulse {
+            0% { transform: scale(2); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0; }
+        }
+        .animate-countdown {
+            animation: countPulse 0.95s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-spooky-dark text-gray-100 min-h-screen flex flex-col selection:bg-halloween-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="bg-spooky-card/90 border-b border-spooky-border sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('guest')">
+                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-halloween-500/20 border-2 border-halloween-500 flex items-center justify-center text-halloween-500 text-2xl animate-pulse shadow-lg shadow-halloween-500/30">
+                    🎃
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-creepster text-halloween-500 spooky-glow">Halloween u Lisa</h1>
+                    <p class="text-[11px] sm:text-xs text-gray-400">Konkurs na Najlepsze Przebranie Imprezy</p>
+                </div>
+            </div>
+
+            <!-- Navigation / Status Bar -->
+            <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                <div id="statusBadge" class="px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400">
+                    <span class="w-2 h-2 rounded-full bg-yellow-400 animate-ping"></span>
+                    Łączenie...
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button id="navGuestBtn" onclick="switchView('guest')" class="px-3 py-2 sm:px-4 sm:py-2 rounded-xl bg-spooky-border hover:bg-halloween-500/30 border border-spooky-border text-xs sm:text-sm font-medium transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-users"></i> <span class="hidden xs:inline">Widok</span> Gościa
+                    </button>
+
+                    <button id="navAdminBtn" onclick="openAdminModal()" class="px-3 py-2 sm:px-4 sm:py-2 rounded-xl bg-purple-900/40 hover:bg-purple-800/60 border border-purple-700/50 text-xs sm:text-sm font-medium transition-all flex items-center gap-2 text-purple-300">
+                        <i class="fa-solid fa-lock"></i> Dostęp VIP
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:py-8">
+
+        <!-- GUEST VIEW -->
+        <div id="guestView" class="space-y-6 sm:space-y-8">
+            <!-- Hero Banner -->
+            <div class="relative rounded-2xl overflow-hidden bg-gradient-to-r from-purple-950 via-spooky-card to-halloween-950 border border-spooky-border p-6 sm:p-8 text-center shadow-2xl">
+                <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#ff6600_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                <div class="relative z-10 max-w-2xl mx-auto space-y-3 sm:space-y-4">
+                    <span class="text-halloween-500 font-creepster text-xl sm:text-2xl tracking-widest block">Witaj w upiornej nocy!</span>
+                    <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight font-creepster text-gray-100">Kto ma najlepsze przebranie?</h2>
+                    <p class="text-gray-300 text-xs sm:text-base">
+                        Zobacz zaprezentowane kostiumy. Gdy głosowanie zostanie włączone, możesz oddać <span class="text-halloween-500 font-semibold">1 głos</span> na swojego faworyta!
+                    </p>
+                    <div id="votingNotice" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-spooky-dark/90 border border-spooky-border text-xs sm:text-sm text-gray-200 shadow-inner">
+                        <span class="text-gray-400">Status:</span> 
+                        <span id="votingStatusText" class="font-bold text-yellow-400 flex items-center gap-1">Sprawdzanie...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Participants Grid -->
+            <div>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
+                    <h3 class="text-2xl font-creepster tracking-wide text-halloween-500 flex items-center gap-2">
+                        <i class="fa-solid fa-ghost"></i> Uczestnicy Konkursu (<span id="participantCount">0</span>)
+                    </h3>
+                    <div class="text-xs text-gray-400">
+                        <span id="votingSubtitle">Wyniki na żywo i lista zgłoszeń</span>
+                    </div>
+                </div>
+
+                <div id="participantsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    <!-- Dynamic participant cards inserted here -->
+                </div>
+
+                <div id="noParticipantsMsg" class="hidden text-center py-16 bg-spooky-card rounded-2xl border border-spooky-border">
+                    <div class="text-6xl mb-3 animate-bounce">👻</div>
+                    <h4 class="text-xl font-semibold text-gray-300 mb-1 font-creepster tracking-wide">Brak uczestników</h4>
+                    <p class="text-gray-400 text-sm">Administrator dodaje zdjęcia uczestników w miarę ich przybycia!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN VIEW (Hidden by default) -->
+        <div id="adminView" class="hidden space-y-6 sm:space-y-8">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-spooky-card border border-spooky-border p-5 sm:p-6 rounded-2xl shadow-xl">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-creepster text-halloween-500 flex items-center gap-3">
+                        <i class="fa-solid fa-screwdriver-wrench"></i> Panel Administratora
+                    </h2>
+                    <p class="text-xs sm:text-sm text-gray-400">Wstawiaj zdjęcia, zarządzaj głosowaniem i sprawdzaj wyniki na żywo.</p>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <button onclick="switchView('guest')" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs sm:text-sm font-medium transition-all text-gray-300 border border-gray-700">
+                        <i class="fa-solid fa-arrow-left"></i> Widok Gościa
+                    </button>
+                    <button onclick="logoutAdmin()" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-red-950/80 hover:bg-red-900 border border-red-800 text-xs sm:text-sm font-medium text-red-200 transition-all">
+                        <i class="fa-solid fa-right-from-bracket"></i> Wyloguj
+                    </button>
+                </div>
+            </div>
+
+            <!-- Admin Controls Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+                <!-- Add Participant Form & Voting Toggle -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Voting Status Control Card -->
+                    <div class="bg-spooky-card border border-spooky-border rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+                        <h3 class="text-xl font-creepster text-halloween-500 flex items-center gap-2">
+                            <i class="fa-solid fa-toggle-on"></i> Status Głosowania
+                        </h3>
+                        <p class="text-xs text-gray-400">Włącz głosowanie, gdy wszyscy goście dostarczą już swoje kostiumy.</p>
+                        
+                        <div class="flex items-center justify-between p-4 rounded-xl bg-spooky-dark border border-spooky-border">
+                            <div>
+                                <div class="text-xs text-gray-400 uppercase tracking-wider font-medium">Bieżący Stan</div>
+                                <div id="adminVotingStatusLabel" class="text-sm text-yellow-400 font-bold mt-0.5">Wyłączone</div>
+                            </div>
+                            <button id="toggleVotingBtn" onclick="toggleVotingStatus()" class="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-2">
+                                Włącz Głosowanie
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Add Participant Card -->
+                    <div class="bg-spooky-card border border-spooky-border rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+                        <h3 class="text-xl font-creepster text-halloween-500 flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus"></i> Dodaj Uczestnika
+                        </h3>
+                        <form id="addParticipantForm" onsubmit="handleAddParticipant(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-300 mb-1">Imię / Postać przebrania</label>
+                                <input type="text" id="participantName" required placeholder="np. Kasia jako Czarownica" 
+                                    class="w-full px-4 py-2.5 bg-spooky-dark border border-spooky-border rounded-xl text-sm focus:outline-none focus:border-halloween-500 text-gray-100 placeholder-gray-600">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-300 mb-1">Zdjęcie Kostiumu</label>
+                                <div class="space-y-2">
+                                    <input type="url" id="participantImageUrl" placeholder="URL zdjęcia (np. https://...)" 
+                                        class="w-full px-4 py-2.5 bg-spooky-dark border border-spooky-border rounded-xl text-sm focus:outline-none focus:border-halloween-500 text-gray-100 placeholder-gray-600">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-500">lub wybierz plik z telefonu:</span>
+                                    </div>
+                                    <input type="file" id="participantImageFile" accept="image/*" onchange="handleImageFileSelect(event)" 
+                                        class="w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-halloween-500/20 file:text-halloween-500 hover:file:bg-halloween-500 hover:file:text-white cursor-pointer transition-all">
+                                </div>
+                            </div>
+
+                            <!-- Preview -->
+                            <div id="imagePreviewContainer" class="hidden relative h-40 rounded-xl overflow-hidden border border-spooky-border bg-spooky-dark">
+                                <img id="imagePreview" src="" alt="Podgląd" class="w-full h-full object-cover">
+                                <button type="button" onclick="clearImagePreview()" class="absolute top-2 right-2 p-1 bg-red-600 hover:bg-red-500 text-white rounded-full text-xs w-7 h-7 flex items-center justify-center shadow-lg">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+
+                            <button type="submit" id="submitParticipantBtn" class="w-full py-3 rounded-xl bg-halloween-500 hover:bg-halloween-600 font-bold text-sm text-white transition-all shadow-lg shadow-halloween-500/20 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Dodaj Uczestnika
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Participants Management & Live Leaderboard -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-spooky-card border border-spooky-border rounded-2xl p-5 sm:p-6 shadow-xl space-y-6">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                            <h3 class="text-xl font-creepster text-halloween-500 flex items-center gap-2">
+                                <i class="fa-solid fa-trophy"></i> Lista i Ranking na Żywo
+                            </h3>
+                            <div class="text-xs text-gray-400">Łącznie oddanych głosów: <span id="totalVotesCount" class="font-bold text-halloween-500 text-sm">0</span></div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-spooky-border text-xs text-gray-400 uppercase tracking-wider">
+                                        <th class="py-3 px-3">Poz.</th>
+                                        <th class="py-3 px-3">Uczestnik</th>
+                                        <th class="py-3 px-3">Zdjęcie</th>
+                                        <th class="py-3 px-3 text-center">Głosy</th>
+                                        <th class="py-3 px-3 text-right">Akcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminParticipantsTableBody" class="divide-y divide-spooky-border/50 text-sm">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="adminNoParticipantsMsg" class="hidden text-center py-12 text-gray-500">
+                            Brak uczestników w bazie danych. Dodaj pierwszego uczestnika po lewej stronie.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-spooky-border bg-spooky-card/50 py-6 text-center text-xs text-gray-500">
+        <p>Halloween Costume Voting App 🎃 Udanej zabawy! 👻</p>
+    </footer>
+
+    <!-- REVEAL & PODIUM MODAL OVERLAY -->
+    <div id="podiumOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md hidden p-4 overflow-y-auto">
+        <!-- 1. Countdown Section -->
+        <div id="countdownSection" class="text-center space-y-6">
+            <div class="text-3xl sm:text-5xl font-creepster text-halloween-500 tracking-widest animate-pulse">
+                🎃 Ogłoszenie Wyników 🎃
+            </div>
+            <div class="text-lg text-purple-300 font-medium">Przygotujcie się na wyłonienie zwycięzców!</div>
+            <div id="countdownNumber" class="text-8xl sm:text-9xl font-extrabold text-halloween-500 font-creepster spooky-glow my-8 animate-countdown">
+                5
+            </div>
+            <div class="text-xs text-gray-400">Liczenie głosów na żywo...</div>
+        </div>
+
+        <!-- 2. Podium Section -->
+        <div id="podiumSection" class="hidden w-full max-w-4xl mx-auto flex flex-col items-center py-6 space-y-8">
+            <div class="text-center space-y-2">
+                <span class="px-4 py-1.5 rounded-full bg-halloween-500/20 border border-halloween-500 text-halloween-500 text-xs font-bold uppercase tracking-widest">
+                    🏆 Oficjalne Wyniki 🏆
+                </span>
+                <h2 class="text-4xl sm:text-6xl font-creepster text-gray-100 spooky-glow">Podium Konkursu</h2>
+            </div>
+
+            <!-- Podium Stage Grid -->
+            <div class="w-full grid grid-cols-3 gap-2 sm:gap-6 items-end justify-center pt-8 min-h-[380px]">
+                <!-- 2nd Place Slot (Left) -->
+                <div id="podium2nd" class="flex flex-col items-center opacity-0">
+                    <div class="relative mb-3 text-center w-full max-w-[160px]">
+                        <div class="w-20 h-20 sm:w-28 sm:h-28 mx-auto rounded-full overflow-hidden border-4 border-slate-300 shadow-xl bg-spooky-dark">
+                            <img id="p2Photo" src="" class="w-full h-full object-cover">
+                        </div>
+                        <div class="mt-2 text-xs sm:text-sm font-bold text-slate-200 truncate px-1" id="p2Name">--</div>
+                        <div class="text-[11px] text-slate-400 font-semibold" id="p2Votes">0 głosów</div>
+                    </div>
+                    <!-- 2nd Stand -->
+                    <div class="w-full bg-gradient-to-t from-slate-800 to-slate-600 rounded-t-2xl h-36 sm:h-44 flex flex-col items-center justify-center border-t-4 border-slate-300 shadow-2xl">
+                        <span class="text-3xl sm:text-5xl font-extrabold font-creepster text-slate-200">2</span>
+                        <span class="text-[10px] sm:text-xs text-slate-300 uppercase font-bold tracking-wider">II Miejsce</span>
+                    </div>
+                </div>
+
+                <!-- 1st Place Slot (Center) -->
+                <div id="podium1st" class="flex flex-col items-center opacity-0 -mt-8">
+                    <div class="relative mb-3 text-center w-full max-w-[200px]">
+                        <!-- Crown Icon -->
+                        <div class="text-3xl sm:text-5xl text-amber-400 mb-1 animate-bounce">👑</div>
+                        <div class="w-24 h-24 sm:w-36 sm:h-36 mx-auto rounded-full overflow-hidden border-4 border-amber-400 shadow-2xl ring-4 ring-amber-400/40 bg-spooky-dark">
+                            <img id="p1Photo" src="" class="w-full h-full object-cover">
+                        </div>
+                        <div class="mt-2 text-sm sm:text-lg font-extrabold text-amber-300 truncate px-1 font-creepster tracking-wide" id="p1Name">--</div>
+                        <div class="text-xs sm:text-sm text-amber-400 font-bold" id="p1Votes">0 głosów</div>
+                    </div>
+                    <!-- 1st Stand -->
+                    <div class="w-full bg-gradient-to-t from-amber-800 via-halloween-600 to-amber-500 rounded-t-2xl h-48 sm:h-60 flex flex-col items-center justify-center border-t-4 border-amber-300 shadow-2xl shadow-halloween-500/30">
+                        <span class="text-4xl sm:text-6xl font-extrabold font-creepster text-amber-100">1</span>
+                        <span class="text-xs sm:text-sm text-amber-200 uppercase font-bold tracking-wider">Zwycięzca</span>
+                    </div>
+                </div>
+
+                <!-- 3rd Place Slot (Right) -->
+                <div id="podium3rd" class="flex flex-col items-center opacity-0">
+                    <div class="relative mb-3 text-center w-full max-w-[160px]">
+                        <div class="w-20 h-20 sm:w-28 sm:h-28 mx-auto rounded-full overflow-hidden border-4 border-amber-700 shadow-xl bg-spooky-dark">
+                            <img id="p3Photo" src="" class="w-full h-full object-cover">
+                        </div>
+                        <div class="mt-2 text-xs sm:text-sm font-bold text-amber-600 truncate px-1" id="p3Name">--</div>
+                        <div class="text-[11px] text-amber-700 font-semibold" id="p3Votes">0 głosów</div>
+                    </div>
+                    <!-- 3rd Stand -->
+                    <div class="w-full bg-gradient-to-t from-amber-950 to-amber-800 rounded-t-2xl h-28 sm:h-36 flex flex-col items-center justify-center border-t-4 border-amber-700 shadow-2xl">
+                        <span class="text-3xl sm:text-5xl font-extrabold font-creepster text-amber-400">3</span>
+                        <span class="text-[10px] sm:text-xs text-amber-300 uppercase font-bold tracking-wider">III Miejsce</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dismiss / Close button -->
+            <button onclick="closePodiumOverlay()" class="px-6 py-3 rounded-xl bg-halloween-500 hover:bg-halloween-600 text-white text-sm font-bold shadow-lg shadow-halloween-500/30 transition-all flex items-center gap-2">
+                <i class="fa-solid fa-ghost"></i> Zobacz Pełne Wyniki
+            </button>
+        </div>
+    </div>
+
+    <!-- Admin PIN Modal -->
+    <div id="adminPinModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
+        <div class="bg-spooky-card border border-spooky-border p-6 sm:p-8 rounded-2xl max-w-md w-full shadow-2xl space-y-6">
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 mx-auto rounded-full bg-purple-900/40 border border-purple-500/50 flex items-center justify-center text-purple-400 text-2xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h3 class="text-2xl font-creepster text-halloween-500">Strefa Dostęp VIP</h3>
+                <p class="text-xs text-gray-400">Wprowadź PIN aby zarejestrować nowe kostiumy lub sterować głosowaniem</p>
+            </div>
+
+            <form onsubmit="verifyAdminPin(event)" class="space-y-4">
+                <div>
+                    <input type="password" id="adminPinInput" required maxlength="10" placeholder="Wpisz PIN" 
+                        class="w-full px-4 py-3 bg-spooky-dark border border-spooky-border rounded-xl text-center text-xl tracking-widest focus:outline-none focus:border-halloween-500 text-gray-100 placeholder-gray-600 font-mono">
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeAdminModal()" class="flex-1 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-sm font-medium text-gray-300 transition-all">
+                        Anuluj
+                    </button>
+                    <button type="submit" class="flex-1 py-3 rounded-xl bg-halloween-500 hover:bg-halloween-600 text-sm font-bold text-white transition-all shadow-lg shadow-halloween-500/20">
+                        Zaloguj
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Notification Toast -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none px-4 w-full sm:w-auto"></div>
+
+    <!-- Firebase SDKs & App logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables provided by environment or fallback
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'halloween-voting-app-2026';
+        let firebaseConfig;
+        try {
+            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+                apiKey: "demo-key",
+                projectId: "demo-project",
+                authDomain: "demo.firebaseapp.com"
+            };
+        } catch (e) {
+            firebaseConfig = { apiKey: "demo-key", projectId: "demo-project" };
+        }
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // State variables
+        let currentUser = null;
+        let votingOpen = false;
+        let previousVotingState = null;
+        let participants = [];
+        let votes = { counts: {}, userVotes: {} };
+        let userVote = null;
+        let base64ImageTemp = '';
+        let isRevealingPodium = false;
+
+        // Paths according to Rule 1
+        const participantsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'participants');
+        const settingsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'status');
+        const votesColRef = collection(db, 'artifacts', appId, 'public', 'data', 'votes');
+
+        // Local storage vote key fallback for extra safety on browser refresh
+        const LOCAL_VOTE_KEY = `halloween_vote_${appId}`;
+
+        // Authentication & Initialization
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.warn("Auth fallback to anonymous:", err);
+                try {
+                    await signInAnonymously(auth);
+                } catch (e) {
+                    console.error("Anonymous auth failed:", e);
+                }
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                updateStatusBadge("Połączono (Online)", "bg-emerald-500/10 border-emerald-500/30 text-emerald-400", "bg-emerald-400");
+                initRealtimeListeners();
+            } else {
+                updateStatusBadge("Brak autoryzacji", "bg-red-500/10 border-red-500/30 text-red-400", "bg-red-400");
+            }
+        });
+
+        // Setup real-time listeners
+        function initRealtimeListeners() {
+            // 1. Settings listener
+            onSnapshot(settingsDocRef, (docSnap) => {
+                const wasOpen = votingOpen;
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    votingOpen = !!data.votingOpen;
+                } else {
+                    setDoc(settingsDocRef, { votingOpen: false }).catch(() => {});
+                    votingOpen = false;
+                }
+                
+                // Trigger Podium animation when admin switches state from OPEN to CLOSED
+                if (previousVotingState === true && votingOpen === false && !isRevealingPodium) {
+                    startPodiumRevealSequence();
+                }
+                previousVotingState = votingOpen;
+                updateVotingUI();
+            }, (error) => {
+                console.error("Error listening to settings:", error);
+            });
+
+            // 2. Participants listener (Strictly safe rendering regardless of voting state)
+            onSnapshot(participantsColRef, (snapshot) => {
+                participants = [];
+                snapshot.forEach((docSnap) => {
+                    const pData = docSnap.data();
+                    participants.push({ id: docSnap.id, ...pData });
+                });
+                renderParticipants();
+                renderAdminTable();
+            }, (error) => {
+                console.error("Error listening to participants:", error);
+            });
+
+            // 3. Votes listener
+            onSnapshot(votesColRef, (snapshot) => {
+                votes = { counts: {}, userVotes: {} };
+                let total = 0;
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const voterId = docSnap.id;
+                    const candidateId = data.candidateId;
+                    
+                    votes.userVotes[voterId] = candidateId;
+                    votes.counts[candidateId] = (votes.counts[candidateId] || 0) + 1;
+                    total++;
+                });
+
+                // Determine current user's vote from Firebase or local fallback
+                if (currentUser && votes.userVotes[currentUser.uid]) {
+                    userVote = votes.userVotes[currentUser.uid];
+                    try { localStorage.setItem(LOCAL_VOTE_KEY, userVote); } catch(e){}
+                } else {
+                    try { userVote = localStorage.getItem(LOCAL_VOTE_KEY) || null; } catch(e){ userVote = null; }
+                }
+
+                document.getElementById('totalVotesCount').innerText = total;
+                renderParticipants();
+                renderAdminTable();
+            }, (error) => {
+                console.error("Error listening to votes:", error);
+            });
+        }
+
+        // Update voting status display
+        function updateVotingUI() {
+            const statusText = document.getElementById('votingStatusText');
+            const adminLabel = document.getElementById('adminVotingStatusLabel');
+            const toggleBtn = document.getElementById('toggleVotingBtn');
+
+            if (votingOpen) {
+                if (statusText) {
+                    statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block mr-1"></span> Głosowanie Otwarte! Oddaj głos.`;
+                    statusText.className = "font-bold text-emerald-400 flex items-center";
+                }
+                if (adminLabel) {
+                    adminLabel.innerText = "AKTYWNE (Głosowanie trwa)";
+                    adminLabel.className = "text-xs text-emerald-400 font-bold";
+                }
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = `<i class="fa-solid fa-pause"></i> Zakończ Głosowanie`;
+                    toggleBtn.className = "px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-lg bg-red-600 hover:bg-red-500 text-white flex items-center gap-2";
+                }
+            } else {
+                if (statusText) {
+                    statusText.innerHTML = `<i class="fa-solid fa-lock text-yellow-400"></i> Głosowanie Zamknięte`;
+                    statusText.className = "font-bold text-yellow-400 flex items-center gap-1.5";
+                }
+                if (adminLabel) {
+                    adminLabel.innerText = "WYŁĄCZONE (Zatrzymane)";
+                    adminLabel.className = "text-xs text-yellow-400 font-bold";
+                }
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = `<i class="fa-solid fa-play"></i> Otwórz Głosowanie`;
+                    toggleBtn.className = "px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-2";
+                }
+            }
+            renderParticipants();
+        }
+
+        // Render Guest Participants Grid - ROBUST GUARANTEE: NO PARTICIPANT IS EVER EXCLUDED
+        window.renderParticipants = function() {
+            const grid = document.getElementById('participantsGrid');
+            const noMsg = document.getElementById('noParticipantsMsg');
+            const countEl = document.getElementById('participantCount');
+
+            if (!grid) return;
+            countEl.innerText = participants.length;
+
+            if (!participants || participants.length === 0) {
+                grid.innerHTML = '';
+                noMsg.classList.remove('hidden');
+                return;
+            }
+            noMsg.classList.add('hidden');
+
+            // Copy and safely sort without modifying original array
+            const sortedParticipants = [...participants].sort((a, b) => {
+                const votesA = (votes && votes.counts && votes.counts[a.id]) ? votes.counts[a.id] : 0;
+                const votesB = (votes && votes.counts && votes.counts[b.id]) ? votes.counts[b.id] : 0;
+                if (votesB !== votesA) {
+                    return votesB - votesA;
+                }
+                const timeA = a.createdAt || 0;
+                const timeB = b.createdAt || 0;
+                return timeB - timeA;
+            });
+
+            // Find maximum vote count safely
+            const maxVotes = sortedParticipants.reduce((max, p) => {
+                const count = (votes && votes.counts && votes.counts[p.id]) ? votes.counts[p.id] : 0;
+                return count > max ? count : max;
+            }, 0);
+
+            let html = '';
+            for (let i = 0; i < sortedParticipants.length; i++) {
+                const p = sortedParticipants[i];
+                const pVotes = (votes && votes.counts && votes.counts[p.id]) ? votes.counts[p.id] : 0;
+                const isMyVote = userVote === p.id;
+                const isWinner = pVotes > 0 && pVotes === maxVotes;
+
+                html += `
+                    <div class="bg-spooky-card border ${isMyVote ? 'border-halloween-500 ring-2 ring-halloween-500/50' : 'border-spooky-border'} rounded-2xl overflow-hidden shadow-xl card-glow flex flex-col justify-between">
+                        <div>
+                            <!-- Card Image & Badges -->
+                            <div class="relative h-64 sm:h-72 bg-spooky-dark overflow-hidden group">
+                                <img src="${p.imageUrl || 'https://placehold.co/400x400/160a22/ff6600?text=Halloween+Kostium'}" alt="${escapeHtml(p.name)}" 
+                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    onerror="this.src='https://placehold.co/400x400/160a22/ff6600?text=Zdjecie+Niedostepne'">
+                                
+                                ${isWinner ? `
+                                    <div class="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-halloween-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1 font-creepster tracking-wider border border-amber-300">
+                                        <i class="fa-solid fa-crown text-yellow-200"></i> Lider (#1)
+                                    </div>
+                                ` : ''}
+
+                                ${isMyVote ? `
+                                    <div class="absolute top-3 right-3 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-1 border border-emerald-400">
+                                        <i class="fa-solid fa-check"></i> Twój Głos
+                                    </div>
+                                ` : ''}
+
+                                <div class="absolute bottom-3 right-3 bg-spooky-dark/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-halloween-500 border border-spooky-border flex items-center gap-1">
+                                    <i class="fa-solid fa-fire text-halloween-500"></i> ${pVotes} ${pVotes === 1 ? 'głos' : 'głosów'}
+                                </div>
+                            </div>
+
+                            <!-- Card Info -->
+                            <div class="p-4 sm:p-5">
+                                <h4 class="text-lg sm:text-xl font-bold text-gray-100 font-creepster tracking-wide leading-snug">${escapeHtml(p.name)}</h4>
+                            </div>
+                        </div>
+
+                        <!-- Card Actions -->
+                        <div class="p-4 sm:p-5 pt-0">
+                            ${votingOpen ? `
+                                <button onclick="castVote('${p.id}')" 
+                                    class="w-full py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md ${isMyVote ? 'bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-400/30' : 'bg-halloween-500 hover:bg-halloween-600 text-white shadow-halloween-500/20 active:scale-95'} flex items-center justify-center gap-2">
+                                    ${isMyVote ? '<i class="fa-solid fa-check"></i> Oddano Głos' : '<i class="fa-solid fa-star"></i> Zagłosuj'}
+                                </button>
+                            ` : `
+                                <div class="text-center py-2.5 rounded-xl bg-spooky-dark/80 text-xs font-medium text-gray-400 border border-spooky-border">
+                                    ${isMyVote ? '<span class="text-emerald-400 font-semibold"><i class="fa-solid fa-check"></i> Twój wybór w tym konkursie</span>' : 'Głosowanie zamknięte'}
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }
+            grid.innerHTML = html;
+        };
+
+        // Render Admin Table
+        window.renderAdminTable = function() {
+            const tbody = document.getElementById('adminParticipantsTableBody');
+            const noMsg = document.getElementById('adminNoParticipantsMsg');
+            if (!tbody) return;
+
+            if (!participants || participants.length === 0) {
+                tbody.innerHTML = '';
+                noMsg.classList.remove('hidden');
+                return;
+            }
+            noMsg.classList.add('hidden');
+
+            const sortedParticipants = [...participants].sort((a, b) => {
+                const votesA = (votes && votes.counts && votes.counts[a.id]) ? votes.counts[a.id] : 0;
+                const votesB = (votes && votes.counts && votes.counts[b.id]) ? votes.counts[b.id] : 0;
+                if (votesB !== votesA) return votesB - votesA;
+                return (b.createdAt || 0) - (a.createdAt || 0);
+            });
+
+            let html = '';
+            for (let i = 0; i < sortedParticipants.length; i++) {
+                const p = sortedParticipants[i];
+                const pVotes = (votes && votes.counts && votes.counts[p.id]) ? votes.counts[p.id] : 0;
+                html += `
+                    <tr class="hover:bg-spooky-dark/50 transition-colors">
+                        <td class="py-3 px-3 font-bold text-halloween-500">#${i + 1}</td>
+                        <td class="py-3 px-3 font-semibold text-gray-200">${escapeHtml(p.name)}</td>
+                        <td class="py-3 px-3">
+                            <img src="${p.imageUrl || 'https://placehold.co/100x100/160a22/ff6600'}" alt="" class="w-10 h-10 rounded-lg object-cover border border-spooky-border">
+                        </td>
+                        <td class="py-3 px-3 text-center font-bold text-halloween-500 text-base">${pVotes}</td>
+                        <td class="py-3 px-3 text-right">
+                            <button onclick="deleteParticipant('${p.id}')" class="px-3 py-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-300 text-xs transition-all flex items-center gap-1.5 ml-auto">
+                                <i class="fa-solid fa-trash"></i> Usuń
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+            tbody.innerHTML = html;
+        };
+
+        // Cast Vote Function
+        window.castVote = async function(candidateId) {
+            if (!votingOpen) {
+                showToast("Głosowanie jest obecnie zamknięte!", "error");
+                return;
+            }
+            if (!currentUser) {
+                showToast("Łączenie z serwerem... Spróbuj za chwilę.", "error");
+                return;
+            }
+
+            try {
+                const voteDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'votes', currentUser.uid);
+                await setDoc(voteDocRef, {
+                    userId: currentUser.uid,
+                    candidateId: candidateId,
+                    timestamp: Date.now()
+                });
+
+                userVote = candidateId;
+                try { localStorage.setItem(LOCAL_VOTE_KEY, candidateId); } catch(e){}
+
+                showToast("Twój głos został zarejestrowany! 🎃", "success");
+            } catch (err) {
+                console.error("Error casting vote:", err);
+                showToast("Nie udało się oddać głosu. Spróbuj ponowanie.", "error");
+            }
+        };
+
+        // Toggle Voting Status
+        window.toggleVotingStatus = async function() {
+            try {
+                const newStatus = !votingOpen;
+                await setDoc(settingsDocRef, { votingOpen: newStatus }, { merge: true });
+                showToast(newStatus ? "Głosowanie zostało OTWARTE! 🎃" : "Głosowanie zostało ZAMKNIĘTE!", "success");
+            } catch (err) {
+                console.error("Error toggling voting:", err);
+                showToast("Nie udało się zmienić statusu głosowania.", "error");
+            }
+        };
+
+        // Add Participant
+        window.handleAddParticipant = async function(event) {
+            event.preventDefault();
+            const name = document.getElementById('participantName').value.trim();
+            const imageUrlInput = document.getElementById('participantImageUrl').value.trim();
+            const imageUrl = base64ImageTemp || imageUrlInput;
+
+            if (!name) {
+                showToast("Wprowadź imię lub nazwę przebrania.", "error");
+                return;
+            }
+
+            try {
+                await addDoc(participantsColRef, {
+                    name: name,
+                    imageUrl: imageUrl || 'https://placehold.co/400x400/160a22/ff6600?text=Halloween+Kostium',
+                    createdAt: Date.now()
+                });
+
+                document.getElementById('addParticipantForm').reset();
+                clearImagePreview();
+                showToast("Uczestnik dodany pomyślnie! 👻", "success");
+            } catch (err) {
+                console.error("Error adding participant:", err);
+                showToast("Błąd podczas dodawania uczestnika.", "error");
+            }
+        };
+
+        // Delete Participant
+        window.deleteParticipant = async function(id) {
+            if (!confirm("Czy na pewno chcesz usunąć tego uczestnika z konkursu?")) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'participants', id));
+                showToast("Uczestnik został usunięty.", "success");
+            } catch (err) {
+                console.error("Error deleting participant:", err);
+                showToast("Błąd podczas usuwania uczestnika.", "error");
+            }
+        };
+
+        // Image file helper
+        window.handleImageFileSelect = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                base64ImageTemp = e.target.result;
+                const preview = document.getElementById('imagePreview');
+                const container = document.getElementById('imagePreviewContainer');
+                preview.src = base64ImageTemp;
+                container.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.clearImagePreview = function() {
+            base64ImageTemp = '';
+            document.getElementById('participantImageFile').value = '';
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+            document.getElementById('imagePreview').src = '';
+        };
+
+        // Admin Modal & PIN logic
+        window.openAdminModal = function() {
+            if (sessionStorage.getItem('halloween_admin_auth') === 'true') {
+                switchView('admin');
+                return;
+            }
+            document.getElementById('adminPinModal').classList.remove('hidden');
+            document.getElementById('adminPinInput').value = '';
+            document.getElementById('adminPinInput').focus();
+        };
+
+        window.closeAdminModal = function() {
+            document.getElementById('adminPinModal').classList.add('hidden');
+        };
+
+        window.verifyAdminPin = function(event) {
+            event.preventDefault();
+            const pin = document.getElementById('adminPinInput').value.trim();
+            if (pin === '20092009') {
+                sessionStorage.setItem('halloween_admin_auth', 'true');
+                closeAdminModal();
+                switchView('admin');
+                showToast("Zalogowano do panelu VIP!", "success");
+            } else {
+                showToast("Nieprawidłowy PIN!", "error");
+            }
+        };
+
+        window.logoutAdmin = function() {
+            sessionStorage.removeItem('halloween_admin_auth');
+            switchView('guest');
+            showToast("Wylogowano ze strefy VIP.", "success");
+        };
+
+        window.logoutAdmin = function() {
+            sessionStorage.removeItem('halloween_admin_auth');
+            switchView('guest');
+            showToast("Wylogowano z panelu administratora.", "success");
+        };
+
+        // View Switcher
+        window.switchView = function(view) {
+            const guestView = document.getElementById('guestView');
+            const adminView = document.getElementById('adminView');
+
+            if (view === 'admin') {
+                if (sessionStorage.getItem('halloween_admin_auth') !== 'true') {
+                    openAdminModal();
+                    return;
+                }
+                guestView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                adminView.classList.add('hidden');
+                guestView.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        };
+
+        // Helper: Toast notifications
+        window.showToast = function(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `p-4 rounded-xl shadow-2xl text-xs sm:text-sm font-semibold border pointer-events-auto transition-all transform translate-y-2 opacity-0 flex items-center gap-3 ${
+                type === 'error' 
+                    ? 'bg-red-950/90 border-red-800 text-red-200' 
+                    : 'bg-spooky-card border-halloween-500 text-gray-100 shadow-halloween-500/10'
+            }`;
+            
+            toast.innerHTML = `
+                <span class="text-xl">${type === 'error' ? '⚠️' : '🎃'}</span>
+                <div class="flex-grow">${escapeHtml(message)}</div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        };
+
+        // Helper: Status badge
+        function updateStatusBadge(text, className, dotClass) {
+            const badge = document.getElementById('statusBadge');
+            if (!badge) return;
+            badge.className = `px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold uppercase tracking-wider flex items-center gap-2 border ${className}`;
+            badge.innerHTML = `<span class="w-2 h-2 rounded-full ${dotClass}"></span> ${text}`;
+        }
+
+        // Helper: HTML escape
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // PODIUM REVEAL SEQUENCE & COUNTDOWN
+        window.startPodiumRevealSequence = function() {
+            isRevealingPodium = true;
+            const overlay = document.getElementById('podiumOverlay');
+            const countdownSec = document.getElementById('countdownSection');
+            const podiumSec = document.getElementById('podiumSection');
+            const countNum = document.getElementById('countdownNumber');
+
+            // Reset UI states
+            overlay.classList.remove('hidden');
+            countdownSec.classList.remove('hidden');
+            podiumSec.classList.add('hidden');
+
+            document.getElementById('podium1st').classList.add('opacity-0', 'animate-pop-up');
+            document.getElementById('podium2nd').classList.add('opacity-0', 'animate-pop-up');
+            document.getElementById('podium3rd').classList.add('opacity-0', 'animate-pop-up');
+
+            let count = 5;
+            countNum.innerText = count;
+
+            const timer = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countNum.innerText = count;
+                } else {
+                    clearInterval(timer);
+                    countdownSec.classList.add('hidden');
+                    podiumSec.classList.remove('hidden');
+                    animatePodiumEntries();
+                }
+            }, 1000);
+        };
+
+        function animatePodiumEntries() {
+            // Get sorted top participants
+            const sorted = [...participants].sort((a, b) => {
+                const votesA = (votes && votes.counts && votes.counts[a.id]) ? votes.counts[a.id] : 0;
+                const votesB = (votes && votes.counts && votes.counts[b.id]) ? votes.counts[b.id] : 0;
+                return votesB - votesA;
+            });
+
+            const first = sorted[0] || { name: 'Brak', imageUrl: '', id: null };
+            const second = sorted[1] || { name: 'Brak', imageUrl: '', id: null };
+            const third = sorted[2] || { name: 'Brak', imageUrl: '', id: null };
+
+            // Populate data
+            document.getElementById('p1Name').innerText = first.name || 'Brak';
+            document.getElementById('p1Votes').innerText = `${(votes.counts && votes.counts[first.id]) || 0} głosów`;
+            document.getElementById('p1Photo').src = first.imageUrl || 'https://placehold.co/200x200/160a22/ff6600?text=1';
+
+            document.getElementById('p2Name').innerText = second.name || 'Brak';
+            document.getElementById('p2Votes').innerText = `${(votes.counts && votes.counts[second.id]) || 0} głosów`;
+            document.getElementById('p2Photo').src = second.imageUrl || 'https://placehold.co/200x200/160a22/ff6600?text=2';
+
+            document.getElementById('p3Name').innerText = third.name || 'Brak';
+            document.getElementById('p3Votes').innerText = `${(votes.counts && votes.counts[third.id]) || 0} głosów`;
+            document.getElementById('p3Photo').src = third.imageUrl || 'https://placehold.co/200x200/160a22/ff6600?text=3';
+
+            // Reveal sequence: 3rd place -> 2nd place -> 1st place
+            setTimeout(() => {
+                document.getElementById('podium3rd').classList.remove('opacity-0');
+            }, 400);
+
+            setTimeout(() => {
+                document.getElementById('podium2nd').classList.remove('opacity-0');
+            }, 1500);
+
+            setTimeout(() => {
+                document.getElementById('podium1st').classList.remove('opacity-0');
+                // Trigger confetti for the winner!
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+            }, 2600);
+        }
+
+        window.closePodiumOverlay = function() {
+            document.getElementById('podiumOverlay').classList.add('hidden');
+            isRevealingPodium = false;
+        };
+
+        // Start initialization
+        initAuth();
+    </script>
+</body>
+</html>
+```
